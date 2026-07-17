@@ -1,0 +1,3 @@
+bearing_type,status,max_relative_error,max_absolute_error,loaded_element_count_equal
+ball,WITHIN_TOLERANCE,0,0,1
+roller,WITHIN_TOLERANCE,0,0,1
