@@ -23,6 +23,9 @@ micro_config.debris.enabled = false;
 micro_config.debris.debris_displacement = 0;
 micro_config.debris.ud = 0;
 
+micro_config.roughness = struct('enabled',false,'mode','off','Rq_inner',[], ...
+    'Rq_outer',[],'Rq_element',[],'inner_pair',struct(), 'outer_pair',struct());
+
 if nargin == 0
     return;
 end
