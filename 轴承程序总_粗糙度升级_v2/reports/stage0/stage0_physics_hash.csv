@@ -1,0 +1,14 @@
+case_id,bearing_type,physics_hash,variable_count,missing_variables,nan_count,inf_count,complex_count,status
+ball_load08,ball,238e80a0ed4c695c814f1f8f0e0b568a0c66f6e08c15123cda8da374f1caecd0,23676,,0,0,0,OK
+ball_load12,ball,b97348dd12958a07e48c38d4e34ca0cfd3e65cad052b1097475076c3f4a64ac1,23676,,0,0,0,OK
+ball_repeat1,ball,5c7cd5d95aa8a5d1ccfee7ece1a44eb40c581e1f18be902c7f55ec293ddeedc5,23676,,0,0,0,OK
+ball_repeat2,ball,5c7cd5d95aa8a5d1ccfee7ece1a44eb40c581e1f18be902c7f55ec293ddeedc5,23676,,0,0,0,OK
+ball_speed08,ball,675957353e9d9ea41f81af3d1572344ea95b436d0047e31c6af2842f09e087f9,23676,,0,0,0,OK
+ball_speed12,ball,30c09439b6c403265d5ce484c1483792a734a5ddd810321bb69fd71a3d8df563,23676,,0,0,0,OK
+roller_default,roller,d55f2c665c6476e2bbab34427453c9e9e8277b0ec0910ef0da3948b49837c915,48627,,0,3,0,OK
+roller_load08,roller,82adc9b204e718d58f028c49cddf2a9c5d4c063402858d9a8fd7526f92e19c25,40329,,0,3,0,OK
+roller_load12,roller,7703a4934654d6e92357bdf39fc8a5b0ecc48cd7904ca1ec6e9cc1cf93174aea,57171,,0,3,0,OK
+roller_repeat1,roller,d55f2c665c6476e2bbab34427453c9e9e8277b0ec0910ef0da3948b49837c915,48627,,0,3,0,OK
+roller_repeat2,roller,d55f2c665c6476e2bbab34427453c9e9e8277b0ec0910ef0da3948b49837c915,48627,,0,3,0,OK
+roller_speed08,roller,520be47b5dafa900c9687b6c0d087fa9e79eec470b991f62fa4464d5cabc5e4c,48627,,0,3,0,OK
+roller_speed12,roller,21bfe86c1536073c9b5657ba77cb6d3751323943275af4199b74f542bd289f7f,40329,,0,3,0,OK
