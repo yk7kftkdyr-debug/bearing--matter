@@ -9,6 +9,8 @@ addpath(fullfile(projectRoot, '球轴承程序'));
 addpath(fullfile(projectRoot, '滚子轴承程序'));
 addpath(fullfile(projectRoot, 'tests'));
 addpath(fullfile(projectRoot, 'cases'));
+addpath(fullfile(projectRoot, 'roughness'));
+addpath(fullfile(projectRoot, 'tests', 'stage1'));
 
 requiredFunctions = {'qiujieend', 'qiujieall', 'ffLOAD', 'ff2', 'ff3', ...
     'make_micro_interface_config'};
