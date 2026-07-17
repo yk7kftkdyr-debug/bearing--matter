@@ -1,0 +1,5 @@
+test_name,pass,status,max_absolute_error,max_relative_error,loaded_element_count_equal,physics_hash_equal,nan_count,inf_count,complex_count,diagnostic_nan_count
+ball_wrapper_equivalence,1,WITHIN_TOLERANCE,0,0,1,1,0,0,0,6
+roller_wrapper_equivalence,1,WITHIN_TOLERANCE,0,0,1,1,0,0,0,6
+ball_order_independence,1,WITHIN_TOLERANCE,0,0,1,1,0,0,0,6
+roller_order_independence,1,WITHIN_TOLERANCE,0,0,1,1,0,0,0,6

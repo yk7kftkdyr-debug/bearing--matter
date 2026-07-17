@@ -1,0 +1,23 @@
+bearing_type,quantity,count,median,P95,recommended_scale,unit
+ball,contact_load,0,,,,legacy SI
+ball,oil_film,89040,0,173158917.914311,173158917.914311,legacy SI
+ball,stiffness,39978,0,184601708.600251,184601708.600251,legacy SI
+ball,pressure_indicator,11472,0.107157223256329,7860,7860,legacy SI
+ball,slip_indicator,0,,,,legacy SI
+ball,legacy_metric,0,,,,legacy SI
+ball,external_load,450,0.275,206000000000,206000000000,legacy SI
+ball,moment,0,,,,legacy SI
+ball,rotation,0,,,,legacy SI
+ball,working_clearance,1182,0.14875,206000000000,206000000000,legacy SI
+ball,displacement,0,,,,legacy SI
+roller,contact_load,79528,288823.774022442,1536043458.74514,1536043458.74514,legacy SI
+roller,oil_film,115772,0,504038.703396669,504038.703396669,legacy SI
+roller,stiffness,56893,17.3502011696728,1494506405.78564,1494506405.78564,legacy SI
+roller,pressure_indicator,79528,288823.774022442,1536043458.74514,1536043458.74514,legacy SI
+roller,slip_indicator,0,,,,legacy SI
+roller,legacy_metric,0,,,,legacy SI
+roller,external_load,525,0.015,206000000000,206000000000,legacy SI
+roller,moment,0,,,,legacy SI
+roller,rotation,0,,,,legacy SI
+roller,working_clearance,0,,,,legacy SI
+roller,displacement,0,,,,legacy SI
