@@ -145,6 +145,32 @@ if micro_config.debris.enabled
     debris_shift = micro_config.debris.ud + micro_config.debris.debris_displacement;
 end
 oilh1(i)=thermal_factor1*texture_factor*2.65*Rr1*(nianya0*E1)^0.54*(niandu0*UU1/(E1*Rr1))^0.7*(Q10(i)/(lenroller*E1*Rr1))^(-0.13);oilh2(i)=thermal_factor2*texture_factor*2.65*Rr2*(nianya0*E2)^0.54*(niandu0*UU2/(E2*Rr2))^0.7*(Q20(i)/(lenroller*E2*Rr2))^(-0.13);
+% STAGE2C1A_JFF2_FREEZE_BEGIN
+if isfield(micro_config,'roughness') && isstruct(micro_config.roughness) && isfield(micro_config.roughness,'enabled') && isfield(micro_config.roughness,'feedback_level') && isscalar(micro_config.roughness.enabled) && (islogical(micro_config.roughness.enabled) || isnumeric(micro_config.roughness.enabled)) && logical(micro_config.roughness.enabled) && isscalar(micro_config.roughness.feedback_level) && isnumeric(micro_config.roughness.feedback_level) && micro_config.roughness.feedback_level == 1
+    if ~isfield(micro_config.roughness,'feedback') || ~isstruct(micro_config.roughness.feedback) || ~isfield(micro_config.roughness.feedback,'roller') || ~isstruct(micro_config.roughness.feedback.roller)
+        error('ROUGHNESS_FEEDBACK_OUT_OF_DOMAIN','Missing roller frozen-film configuration.');
+    end
+    stage2c1a_feedback = micro_config.roughness.feedback.roller;
+    if ~isfield(stage2c1a_feedback,'delta_h_outer') || ~isfield(stage2c1a_feedback,'delta_h_inner') || numel(stage2c1a_feedback.delta_h_outer) ~= n || numel(stage2c1a_feedback.delta_h_inner) ~= n || ~isreal(stage2c1a_feedback.delta_h_outer) || ~isreal(stage2c1a_feedback.delta_h_inner) || any(~isfinite(stage2c1a_feedback.delta_h_outer(:))) || any(~isfinite(stage2c1a_feedback.delta_h_inner(:)))
+        error('ROUGHNESS_FEEDBACK_OUT_OF_DOMAIN','Roller frozen-film corrections must be finite real vectors indexed by all roller IDs.');
+    end
+    oilh1_legacy(i) = oilh1(i);
+    oilh2_legacy(i) = oilh2(i);
+    oilh1_used(i) = oilh1_legacy(i);
+    oilh2_used(i) = oilh2_legacy(i);
+    stage2c1a_roller_id = loadi(i);
+    if ~isscalar(stage2c1a_roller_id) || ~isreal(stage2c1a_roller_id) || ~isfinite(stage2c1a_roller_id) || stage2c1a_roller_id < 1 || stage2c1a_roller_id > n || stage2c1a_roller_id ~= floor(stage2c1a_roller_id)
+        error('ROUGHNESS_FEEDBACK_OUT_OF_DOMAIN','Invalid actual roller ID for frozen-film correction.');
+    end
+    oilh1_used(i) = oilh1_used(i) + stage2c1a_feedback.delta_h_outer(stage2c1a_roller_id);
+    oilh2_used(i) = oilh2_used(i) + stage2c1a_feedback.delta_h_inner(stage2c1a_roller_id);
+    if ~isfinite(oilh1_used(i)) || ~isfinite(oilh2_used(i)) || ~isreal(oilh1_used(i)) || ~isreal(oilh2_used(i)) || oilh1_used(i) <= 0 || oilh2_used(i) <= 0
+        error('ROUGHNESS_FEEDBACK_OUT_OF_DOMAIN','Frozen-film correction produced a nonpositive or nonfinite oil film.');
+    end
+    oilh1(i) = oilh1_used(i);
+    oilh2(i) = oilh2_used(i);
+end
+% STAGE2C1A_JFF2_FREEZE_END
 %*****************************************************************************************   
  
 %***********************************考虑热效应膜厚计算公式******************************************************   
