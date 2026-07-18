@@ -1,36 +1,36 @@
-function ffLOAD(datafromvb,loadi,ttt3)  % Çó½â ÄÚÈ¦Æ½ºâ ·½³Ì×é
+function ffLOAD(datafromvb,loadi,ttt3)  % æ±‚è§£ å†…åœˆå¹³è¡¡ æ–¹ç¨‹ç»„
 
 pp=ttt3;
 
-% Êı¾İÊäÈë²¿·Ö£¡£¡
+% æ•°æ®è¾“å…¥éƒ¨åˆ†ï¼ï¼
 n=datafromvb(1);Dw=datafromvb(2);Dm=datafromvb(3);f1=datafromvb(4);f2=datafromvb(5);a0=datafromvb(6)*pi/180;
-Rp=datafromvb(7); %¶µ¿×°ë¾¶
-aqj=datafromvb(35)*pi/180; %°²È«½Ç
+Rp=datafromvb(7); %å…œå­”åŠå¾„
+aqj=datafromvb(35)*pi/180; %å®‰å…¨è§’
 ballden=datafromvb(61);e1=datafromvb(9);e2=datafromvb(10);e3=datafromvb(11);o1=datafromvb(12);o2=datafromvb(13);o3=datafromvb(14);
 W2=datafromvb(15)*pi/30;Fxx=datafromvb(16); Fyy=datafromvb(17); Fzz=datafromvb(18); Myy=datafromvb(19)+0.1; Mzz=datafromvb(20)+0.1;
 dangbianxishu1=datafromvb(21);dangbianxishu2=datafromvb(22);
 cucao1=datafromvb(23);cucao2=datafromvb(24);cucao3=datafromvb(25);
-%Èó»¬ÓÍ»ù±¾²ÎÊı
-oilden=datafromvb(26); sita0=datafromvb(27);K=datafromvb(28); %³£ÎÂÏÂµÄµ¼ÈÈÏµÊı
-niandu0=datafromvb(29); nianya0=datafromvb(30); beita0=datafromvb(31);   %Õ³ÎÂÏµÊı£¨½üËÆÈÏÎª²»±ä£¬wysÂÛÎÄÖĞ£©   ËùÓĞ²ÎÊı¾ùÎª³£ÎÂÏÂµÄ²ÎÊı£¡£¡£¡
-yindao=datafromvb(32); yindaojianxi=datafromvb(33);   % Òıµ¼·½Ê½,Òıµ¼¼äÏ¶
-dianpianjiao=datafromvb(34);  %µæÆ¬½Ç
+%æ¶¦æ»‘æ²¹åŸºæœ¬å‚æ•°
+oilden=datafromvb(26); sita0=datafromvb(27);K=datafromvb(28); %å¸¸æ¸©ä¸‹çš„å¯¼çƒ­ç³»æ•°
+niandu0=datafromvb(29); nianya0=datafromvb(30); beita0=datafromvb(31);   %ç²˜æ¸©ç³»æ•°ï¼ˆè¿‘ä¼¼è®¤ä¸ºä¸å˜ï¼Œwysè®ºæ–‡ä¸­ï¼‰   æ‰€æœ‰å‚æ•°å‡ä¸ºå¸¸æ¸©ä¸‹çš„å‚æ•°ï¼ï¼ï¼
+yindao=datafromvb(32); yindaojianxi=datafromvb(33);   % å¼•å¯¼æ–¹å¼,å¼•å¯¼é—´éš™
+dianpianjiao=datafromvb(34);  %å«ç‰‡è§’
 
 %a0=acos(1-deltar0/(f1+f2-1)/Dw/2);
 deltac0=Rp/2-Dw/2;
-deltar0=2*(1-cos(a0))*(f1+f2-1)*Dw;               %ÇóÔ­Ê¼¾¶Ïò¼äÏ¶£¡
-deltaa0=2*sin(a0)*(f1+f2-1)*Dw ;                 %ÇóÔ­Ê¼ÖáÏò¼äÏ¶£¡
-Dy1=Dm+Dw+deltar0;Dy2=Dm-Dw-deltar0;  % ¹µµ×Ö±¾¶
-Dr1=Dy1-2*dangbianxishu1*Dw;Dr2=Dy2+2*dangbianxishu2*Dw;  % µ²±ßÖ±¾¶£¨Òıµ¼ÃæÖ±¾¶£©  µµ±ß¸ßÏµÊı¸ø³ö£¡£¡£¡£¡
+deltar0=2*(1-cos(a0))*(f1+f2-1)*Dw;               %æ±‚åŸå§‹å¾„å‘é—´éš™ï¼
+deltaa0=2*sin(a0)*(f1+f2-1)*Dw ;                 %æ±‚åŸå§‹è½´å‘é—´éš™ï¼
+Dy1=Dm+Dw+deltar0;Dy2=Dm-Dw-deltar0;  % æ²Ÿåº•ç›´å¾„
+Dr1=Dy1-2*dangbianxishu1*Dw;Dr2=Dy2+2*dangbianxishu2*Dw;  % æŒ¡è¾¹ç›´å¾„ï¼ˆå¼•å¯¼é¢ç›´å¾„ï¼‰  æ¡£è¾¹é«˜ç³»æ•°ç»™å‡ºï¼ï¼ï¼ï¼
 save Dy1;
 save Dy2;
 
-a0=acos(1-deltar0/(2*(f1+f2-1)*Dw)-(2*f2-1)*(1-cos(dianpianjiao*pi/180))/(2*(f1+f2-1)));  %´æÔÚµæÆ¬½ÇadÊ±¼ÆËã³õÊ¼½Ó´¥½Ç
+a0=acos(1-deltar0/(2*(f1+f2-1)*Dw)-(2*f2-1)*(1-cos(dianpianjiao*pi/180))/(2*(f1+f2-1)));  %å­˜åœ¨å«ç‰‡è§’adæ—¶è®¡ç®—åˆå§‹æ¥è§¦è§’
 xh=sqrt( (f2*Dw)^2-( f2*Dw*cos(dianpianjiao*pi/180)- dangbianxishu2*Dw )^2 );
 
 z7=0;z8=0;z9=0;z10=0;z11=0;z12=0;z13=0;z14=0;z15=0;
 loadj=length(loadi);
-%³õÊ¼µÄ¼ÙÉèÖµ£¡£¡£¡
+%åˆå§‹çš„å‡è®¾å€¼ï¼ï¼ï¼
 beitajiao=atan(sin(a0)/(cos(a0)+Dw/Dm));
 Wo=W2*(1-Dw/Dm*cos(a0))*(cos(a0)+tan(beitajiao)*sin(a0))/(( 1-Dw/Dm*cos(a0))*(cos(a0)+tan(beitajiao)*sin(a0))+ ( 1+Dw/Dm*cos(a0))*(cos(a0)+tan(beitajiao)*sin(a0))    );
 Wx=-W2*(1-Dw/Dm*cos(a0))*(1+Dw/Dm*cos(a0))/(( 1-Dw/Dm*cos(a0))*(cos(a0)+tan(beitajiao)*sin(a0))+ ( 1+Dw/Dm*cos(a0))*(cos(a0)+tan(beitajiao)*sin(a0)) )/(Dw/Dm);
@@ -42,34 +42,34 @@ end
 X2=pp(2*loadj+1);Y2=pp(2*loadj+2);Z2=pp(2*loadj+3);sitay=pp(2*loadj+4);sitaz=pp(2*loadj+5);
 
 
-m=ballden*Dw*Dw*Dw*pi/6;  %ÇòµÄÖÊÁ¿¼ÆËã
-J=m*Dw*Dw/10;             %×ª¶¯¹ßÁ¿¼ÆËã
-%ÇóÍâ¡¢ÄÚÈ¦ºÕ×È½Ó´¥ÔØºÉ£¡
+m=ballden*Dw*Dw*Dw*pi/6;  %çƒçš„è´¨é‡è®¡ç®—
+J=m*Dw*Dw/10;             %è½¬åŠ¨æƒ¯é‡è®¡ç®—
+%æ±‚å¤–ã€å†…åœˆèµ«å…¹æ¥è§¦è½½è·ï¼
 rou1=1/Dw*(4-1/f1-2*Dw*cos(a0)/(Dm+Dw*cos(a0)));
 Rx1=Dw*(0.5*Dm/cos(a0)+0.5*Dw)/( Dm/cos(a0) );
 Ry1=f1*Dw/(2*f1-1);
 R21=Rx1*Ry1/(Rx1+Ry1);
-E1=2/(((1-o1^2)/e1)+((1-o3^2)/e3));             %e1£¬e3ÎªÍâÈ¦ºÍÇòµÄµ¯ĞÔÄ£Á¿£¬o1£¬o3ÎªÍâÈ¦£¬ÇòµÄ²´ËÉ±È
+E1=2/(((1-o1^2)/e1)+((1-o3^2)/e3));             %e1ï¼Œe3ä¸ºå¤–åœˆå’Œçƒçš„å¼¹æ€§æ¨¡é‡ï¼Œo1ï¼Œo3ä¸ºå¤–åœˆï¼Œçƒçš„æ³Šæ¾æ¯”
 K1=1.0339*(Ry1/Rx1)^0.636;
-ee21=1.0003+0.5968/(Ry1/Rx1);          %ee21ÊÇÍâÈ¦µÄee2µÚ¶şÀàÍêÈ«ÍÖÔ²»ı·Öp12 pengboÂÛÎÄeq.2-16
+ee21=1.0003+0.5968/(Ry1/Rx1);          %ee21æ˜¯å¤–åœˆçš„ee2ç¬¬äºŒç±»å®Œå…¨æ¤­åœ†ç§¯åˆ†p12 pengboè®ºæ–‡eq.2-16
 ee11=((K1^2+1)*ee21-(K1^2-1)*ee21*( -2*cos(a0)/(Dm+Dw*cos(a0)) +1/(f1*Dw)  )/rou1)/2;
 
 rou2= 1/Dw*(4-1/f2+2*Dw*cos(a0)/(Dm-Dw*cos(a0)));
-E2=2/(((1-o2^2)/e2)+((1-o3^2)/e3));   %e1£¬e3ÎªÄÚÈ¦ºÍÇòµÄµ¯ĞÔÄ£Á¿£¬o1£¬o3ÎªÄÚÈ¦£¬ÇòµÄ²´ËÉ±È
+E2=2/(((1-o2^2)/e2)+((1-o3^2)/e3));   %e1ï¼Œe3ä¸ºå†…åœˆå’Œçƒçš„å¼¹æ€§æ¨¡é‡ï¼Œo1ï¼Œo3ä¸ºå†…åœˆï¼Œçƒçš„æ³Šæ¾æ¯”
 Rx2=Dw*(0.5*Dm/cos(a0)-0.5*Dw)/(Dm/cos(a0) );
 Ry2=f2*Dw/(2*f2-1);
 K2=1.0339*(Ry2/Rx2)^0.636;
 R22=Rx2*Ry2/(Rx2+Ry2);
 R222=Dm/2+(f2-0.5)*Dw*cos(a0);
-ee22=1.0003+0.5968/(Ry2/Rx2);  %ee21ÊÇÄÚÈ¦µÄee2µÚ¶şÀàÍêÈ«ÍÖÔ²»ı·Öp12 pengboÂÛÎÄeq.2-16
+ee22=1.0003+0.5968/(Ry2/Rx2);  %ee21æ˜¯å†…åœˆçš„ee2ç¬¬äºŒç±»å®Œå…¨æ¤­åœ†ç§¯åˆ†p12 pengboè®ºæ–‡eq.2-16
 ee12=((K2^2+1)*ee22-(K2^2-1)*ee22*( 2*cos(a0)/(Dm-Dw*cos(a0)) +1/(f2*Dw)  )/rou2)/2;
-aaa1=0;                              %ÇòºÍÍâÈ¦Êµ¼Ê½Ó´¥½Ç
-aaa2=0;                              %ÇòºÍÄÚÈ¦Êµ¼Ê½Ó´¥½Ç
+aaa1=0;                              %çƒå’Œå¤–åœˆå®é™…æ¥è§¦è§’
+aaa2=0;                              %çƒå’Œå†…åœˆå®é™…æ¥è§¦è§’
 
-for i=1:loadj       %¹²loadj¸öÇòÑ­»·
-    sita(i)=2*pi*(loadi(i))/n ;     %Çó¸÷¸öÇòµÄ·½Î»½Ç
+for i=1:loadj       %å…±loadjä¸ªçƒå¾ªç¯
+    sita(i)=2*pi*(loadi(i))/n ;     %æ±‚å„ä¸ªçƒçš„æ–¹ä½è§’
 
-    % ×îĞ¡ÓÍÄ¤ºñ¶È¼ÆËã!!!
+    % æœ€å°æ²¹è†œåšåº¦è®¡ç®—!!!
     if Fxx==0 || Fxx/((-Fzz*tan(a0)/Fxx+1)*n*sin(a0))<=0
         Qmax=5*Fzz/n;
     else
@@ -99,26 +99,33 @@ if micro_config.debris.enabled
 end
     oilh1(i)=thermal_factor1*texture_factor*Rx1*3.63*(niandu0*U1(i)/(E1*Rx1))^(0.68)*(nianya0*E1)^(0.49)*(Q10(i)/Rx1^2/E1)^(-0.073)*(1-exp(-0.68*K1));
     oilh2(i)=thermal_factor2*texture_factor*Rx2*3.63*(niandu0*U2(i)/(E2*Rx2))^(0.68)*(nianya0*E2)^(0.49)*(Q20(i)/Rx2^2/E2)^(-0.073)*(1-exp(-0.68*K2));
+    oilh1legacy(i)=oilh1(i); oilh2legacy(i)=oilh2(i);
+    if isfield(micro_config,'roughness') && micro_config.roughness.enabled && isfield(micro_config.roughness,'feedback_level') && micro_config.roughness.feedback_level==1
+        ballId=loadi(i); correction=micro_config.roughness.feedback.ball;
+        assert(numel(correction.delta_h_outer)>=ballId && numel(correction.delta_h_inner)>=ballId,'ffLOAD:RoughnessFeedback','Missing fixed ball film correction.');
+        oilh1(i)=oilh1(i)+correction.delta_h_outer(ballId); oilh2(i)=oilh2(i)+correction.delta_h_inner(ballId);
+        assert(oilh1(i)>0 && oilh2(i)>0,'ffLOAD:RoughnessFeedback','OUT_OF_MODEL_DOMAIN: nonpositive corrected film.');
+    end
 
 % oilh1(1)=0.114*10^(-6);oilh1(2)=0.114*10^(-6);oilh1(3)=0.114*10^(-6);oilh1(4)=0.114*10^(-6);oilh1(5)=0.115*10^(-6);oilh1(6)=0.116*10^(-6);
 % oilh1(7)=0.117*10^(-6);oilh1(8)=0.118*10^(-6);oilh1(9)=0.118*10^(-6);
 % oilh1(10)=0.119*10^(-6);oilh1(11)=0.119*10^(-6);oilh1(12)=0.119*10^(-6);oilh1(13)=0.118*10^(-6);oilh1(14)=0.118*10^(-6);oilh1(15)=0.117*10^(-6);
 % oilh1(16)=0.117*10^(-6);oilh1(17)=0.116*10^(-6);oilh1(18)=0.115*10^(-6);
-% 
+%
 % oilh2(1)=0.113*10^(-6);oilh2(2)=0.114*10^(-6);oilh2(3)=0.113*10^(-6);oilh2(4)=0.114*10^(-6);oilh2(5)=0.115*10^(-6);oilh2(6)=0.116*10^(-6);
 % oilh2(7)=0.117*10^(-6);oilh2(8)=0.118*10^(-6);oilh2(9)=0.118*10^(-6);
 % oilh2(10)=0.119*10^(-6);oilh2(11)=0.119*10^(-6);oilh2(12)=0.119*10^(-6);oilh2(13)=0.118*10^(-6);oilh2(14)=0.118*10^(-6);oilh2(15)=0.117*10^(-6);
 % oilh2(16)=0.116*10^(-6);oilh2(17)=0.115*10^(-6);oilh2(18)=0.114*10^(-6);
     sitajiao(i)=360*(loadi(i))/n;
-    P2(i)=5e-6*sin((Dw/2*sitajiao(i)/(0.001667))/180*pi+pi/2);%Chenzhegai ²¨ÎÆ¶È    % load-dependent debris_shift comes from micro_config when debris.enabled is true.
-    xx(i)=x(i)+((f1-0.5)*Dw )*sin(a0);  y(i)=r(i)-(Dm/2-(f1-0.5)*Dw*cos(a0));%x(i)£¬r(i)±äÁ¿
-    %ÓÉÎ»ÒÆ-±äĞÎÏàÈİ·½³ÌÇóµ¯ĞÔ±äĞÎºÍ½Ó´¥½Ç£¡
+    P2(i)=5e-6*sin((Dw/2*sitajiao(i)/(0.001667))/180*pi+pi/2);%Chenzhegai æ³¢çº¹åº¦    % load-dependent debris_shift comes from micro_config when debris.enabled is true.
+    xx(i)=x(i)+((f1-0.5)*Dw )*sin(a0);  y(i)=r(i)-(Dm/2-(f1-0.5)*Dw*cos(a0));%x(i)ï¼Œr(i)å˜é‡
+    %ç”±ä½ç§»-å˜å½¢ç›¸å®¹æ–¹ç¨‹æ±‚å¼¹æ€§å˜å½¢å’Œæ¥è§¦è§’ï¼
     %delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-0.542*10^(-6);
     %delta2(i)=sqrt(( ((f1+f2-1)*Dw )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-0.542*10^(-6);
-    delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift;%´ŞÁ¢²©Ê¿ÂÛÎÄeq.2-15£¬½Ó´¥±äĞÎÖĞÉæ¼°Î´Öª±äÁ¿x(i)£¬r(i)£¬ÄÚÈ¦½Ó´¥»¹Éæ¼°X2£¬Y2,Z2,sitaz,sitay
+    delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift;%å´”ç«‹åšå£«è®ºæ–‡eq.2-15ï¼Œæ¥è§¦å˜å½¢ä¸­æ¶‰åŠæœªçŸ¥å˜é‡x(i)ï¼Œr(i)ï¼Œå†…åœˆæ¥è§¦è¿˜æ¶‰åŠX2ï¼ŒY2,Z2,sitaz,sitay
     delta2(i)=sqrt(( ((f1+f2-1)*Dw )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-oilh2(i)+debris_shift;
 
-    % Èç¹û ½Ó´¥±äĞÎÎª¸ºÖµ£¬´ËÊ±Òª¸Ä±ä¹ö¶¯ÌåÎ»ÒÆ£¡£¡
+    % å¦‚æœ æ¥è§¦å˜å½¢ä¸ºè´Ÿå€¼ï¼Œæ­¤æ—¶è¦æ”¹å˜æ»šåŠ¨ä½“ä½ç§»ï¼ï¼
 
     if delta1(i)<=0
         xielv1=y(i)/xx(i);
@@ -127,11 +134,11 @@ end
         else
             xxi=xx(i);
             xx(i)=2*( (y(i)*xielv+xx(i))/(xielv^2+1) )-xx(i);
-            y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %¹ØÓÚÖĞĞÄÏß×÷¶Ô³Æ´¦ÀíÒÔ±£Ö¤Ğ±ÂÊ¡µk2
+            y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %å…³äºä¸­å¿ƒçº¿ä½œå¯¹ç§°å¤„ç†ä»¥ä¿è¯æ–œç‡ã€‰k2
             xielv1=y(i)/xx(i);
         end
     end
-    while (delta1(i)<=0)%µü´ú ²½³¤1e-7
+    while (delta1(i)<=0)%è¿­ä»£ æ­¥é•¿1e-7
         increase1=1e-7;
         xx(i)=xx(i)+increase1;
         x(i)=xx(i)-((f1-0.5)*Dw  )*sin(a0);
@@ -151,7 +158,7 @@ end
         else
             xxi=xx(i);
             xx(i)=2*( (y(i)*xielv+xx(i))/(xielv^2+1) )-xx(i);
-            y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %¹ØÓÚÖĞĞÄÏß×÷¶Ô³Æ´¦ÀíÒÔ±£Ö¤Ğ±ÂÊ¡µk2
+            y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %å…³äºä¸­å¿ƒçº¿ä½œå¯¹ç§°å¤„ç†ä»¥ä¿è¯æ–œç‡ã€‰k2
         end
         xielv2=(  (((f1+f2-1)*Dw  )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))) -y(i) )/(   (((f1+f2-1)*Dw  )*sin(a0)+(X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i))))) -xx(i));
     end
@@ -163,17 +170,17 @@ end
 
     while (delta1(i)<=0)
         increase1=1e-7;
-        xx(i)=xx(i)+increase1;%µ÷½Ú r(i)
+        xx(i)=xx(i)+increase1;%è°ƒèŠ‚ r(i)
         x(i)=xx(i)-((f1-0.5)*Dw  )*sin(a0);
-        y(i)=y(i)+increase1*xielv1;%µ÷½Ú r(i)
+        y(i)=y(i)+increase1*xielv1;%è°ƒèŠ‚ r(i)
         r(i)=y(i)+(Dm/2-((f1-0.5)*Dw  )*cos(a0));
         delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw -oilh1(i)+debris_shift;
     end
 
     while (delta2(i)<=0)
-        if  xx(i)<1e-10   |   sqrt(xx(i)^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift<1e-10                    %Èç¹ûxx(i)<0, ÒªÍ£Ö¹¸Ä±äx(i) r(i),¶øÊÇ¸Ä±äX2
+        if  xx(i)<1e-10   |   sqrt(xx(i)^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift<1e-10                    %å¦‚æœxx(i)<0, è¦åœæ­¢æ”¹å˜x(i) r(i),è€Œæ˜¯æ”¹å˜X2
             while(delta2(i)<=0)
-                X2=X2+1e-7;%µ÷½ÚX2
+                X2=X2+1e-7;%è°ƒèŠ‚X2
                 delta2(i)=sqrt(( ((f1+f2-1)*Dw    )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw    )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-oilh2(i)+debris_shift;
             end
         end
@@ -184,7 +191,7 @@ end
         r(i)=y(i)+(Dm/2-((f1-0.5)*Dw  )*cos(a0));
         delta2(i)=sqrt(( ((f1+f2-1)*Dw )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-oilh2(i)+debris_shift;
 
-        if   sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift<1e-10            %Èç¹û¸Ä±äxx(i) y(i)Ê¹µÃdelta1(i)<0 ÔòÒªÍ£Ö¹¸Ä±äx(i) r(i),¶øÊÇ¸Ä±äX2
+        if   sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift<1e-10            %å¦‚æœæ”¹å˜xx(i) y(i)ä½¿å¾—delta1(i)<0 åˆ™è¦åœæ­¢æ”¹å˜x(i) r(i),è€Œæ˜¯æ”¹å˜X2
             delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift;
             if delta1(i)<=0
                 xielv1=y(i)/xx(i);
@@ -193,7 +200,7 @@ end
                 else
                     xxi=xx(i);
                     xx(i)=2*( (y(i)*xielv+xx(i))/(xielv^2+1) )-xx(i);
-                    y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %¹ØÓÚÖĞĞÄÏß×÷¶Ô³Æ´¦ÀíÒÔ±£Ö¤Ğ±ÂÊ¡µk2
+                    y(i)=2*xielv*( (y(i)*xielv+xxi)/(xielv^2+1) )-y(i);     %å…³äºä¸­å¿ƒçº¿ä½œå¯¹ç§°å¤„ç†ä»¥ä¿è¯æ–œç‡ã€‰k2
                     xielv1=y(i)/xx(i);
                 end
             end
@@ -225,25 +232,25 @@ end
     Q2(i)=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
     a1(i)=atan((xx(i))/y(i));
     a2(i)=atan((((f1+f2-1)*Dw    )*sin(a0)+(X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i))))-(xx(i)))/(((f1+f2-1)*Dw)*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i)) -y(i)));
-    aa1(i)=(6*K1^2*ee21*R21*Q1(i)/(E1*pi))^0.3333; b1(i)=aa1(i)/K1;    %ÇóµÃ½Ó´¥ÍÖÔ²³¤¶ÌÖá£¡
-    aa2(i)=(6*K2^2*ee22*R22*Q2(i)/(E2*pi))^0.3333; b2(i)=aa2(i)/K2;   %ÇóµÃ½Ó´¥ÍÖÔ²³¤¶ÌÖá£¡
+    aa1(i)=(6*K1^2*ee21*R21*Q1(i)/(E1*pi))^0.3333; b1(i)=aa1(i)/K1;    %æ±‚å¾—æ¥è§¦æ¤­åœ†é•¿çŸ­è½´ï¼
+    aa2(i)=(6*K2^2*ee22*R22*Q2(i)/(E2*pi))^0.3333; b2(i)=aa2(i)/K2;   %æ±‚å¾—æ¥è§¦æ¤­åœ†é•¿çŸ­è½´ï¼
 
-    jcqwj(i)=aa1(i)/Dw;           %Ã¿¸öÇòÍâÈ¦½Ó´¥ÍÖÔ²Óë¹ö¶¯ÌåÖÊĞÄµÄ×î´óÕÅ½Ç
-    jcqnj(i)=aa2(i)/Dw;           %Ã¿¸öÇòÄÚÈ¦½Ó´¥ÍÖÔ²Óë¹ö¶¯ÌåÖÊĞÄµÄ×î´óÕÅ½Ç
+    jcqwj(i)=aa1(i)/Dw;           %æ¯ä¸ªçƒå¤–åœˆæ¥è§¦æ¤­åœ†ä¸æ»šåŠ¨ä½“è´¨å¿ƒçš„æœ€å¤§å¼ è§’
+    jcqnj(i)=aa2(i)/Dw;           %æ¯ä¸ªçƒå†…åœˆæ¥è§¦æ¤­åœ†ä¸æ»šåŠ¨ä½“è´¨å¿ƒçš„æœ€å¤§å¼ è§’
 
-    if a1(i)+jcqwj(i)>aaa1               %ÇóÇòºÍÍâÈ¦Êµ¼Ê½Ó´¥½Ç
+    if a1(i)+jcqwj(i)>aaa1               %æ±‚çƒå’Œå¤–åœˆå®é™…æ¥è§¦è§’
         aaa1=a1(i)+jcqwj(i);
     end
-    if a2(i)+jcqnj(i)>aaa2               %ÇóÇòºÍÄÚÈ¦Êµ¼Ê½Ó´¥½Ç
+    if a2(i)+jcqnj(i)>aaa2               %æ±‚çƒå’Œå†…åœˆå®é™…æ¥è§¦è§’
         aaa2=a2(i)+jcqnj(i);
     end
 
     Ph1(i)=1.5*Q1(i)/(pi*aa1(i)*b1(i));
     Ph2(i)=1.5*Q2(i)/(pi*aa2(i)*b2(i));
 
-    %ÇóÇòÑØÍÖÔ²³¤Öá·½ÏòµÄÄ¦²ÁÁ¦£¡ ×î³õÈ¡Ä¦²ÁÏµÊıÎª0.02£¬´ı×ªËÙÇóµÃºóÔÙÖØĞÂÊÕÁ²£¡£¡£¡£¡
+    %æ±‚çƒæ²¿æ¤­åœ†é•¿è½´æ–¹å‘çš„æ‘©æ“¦åŠ›ï¼ æœ€åˆå–æ‘©æ“¦ç³»æ•°ä¸º0.02ï¼Œå¾…è½¬é€Ÿæ±‚å¾—åå†é‡æ–°æ”¶æ•›ï¼ï¼ï¼ï¼
     deltaU1(i)=abs(-Wo*Dm/2+abs(Wx)*cos(a0)-Wo*cos(a0)*(Dw/2));
-    S12(i)=abs(deltaU1(i)/U1(i));  
+    S12(i)=abs(deltaU1(i)/U1(i));
     miuI(i)=0.0127*(50/(50-S12(i)))*log(0.584*Q1(i)/niandu0/deltaU1(i)/(U1(i))^2);    %CHENZHEGAI
     deltaU2(i)=abs(+(W2-Wo)*Dm/2- abs(Wx)*cos(a0)+(W2-Wo)*cos(a0)*(Dw/2));
     S22(i)=abs(deltaU2(i)/U2(i));
@@ -251,37 +258,37 @@ end
     fs1(i)=miuI(i)*Q1(i);fs2(i)=miuO(i)*Q2(i);
 
     Fz(i)=m*(Wo)^2*r(i);
-    z1(i)=-Q1(i)*sin(a1(i))+Q2(i)*sin(a2(i))+fs1(i)*cos(a1(i))-fs2(i)*cos(a2(i));%Çòx·½ÏòÊÜÁ¦Æ½ºâ(a)£¬fs1Óë´ŞÁ¦ÂÛÎÄÖĞ¼ÆËã²»Í¬
-    z3(i)=-Q1(i)*cos(a1(i))+Q2(i)*cos(a2(i))-fs1(i)*sin(a1(i))+fs2(i)*sin(a2(i))+Fz(i);%Çòx·½ÏòÊÜÁ¦Æ½ºâ(c)
+    z1(i)=-Q1(i)*sin(a1(i))+Q2(i)*sin(a2(i))+fs1(i)*cos(a1(i))-fs2(i)*cos(a2(i));%çƒxæ–¹å‘å—åŠ›å¹³è¡¡(a)ï¼Œfs1ä¸å´”åŠ›è®ºæ–‡ä¸­è®¡ç®—ä¸åŒ
+    z3(i)=-Q1(i)*cos(a1(i))+Q2(i)*cos(a2(i))-fs1(i)*sin(a1(i))+fs2(i)*sin(a2(i))+Fz(i);%çƒxæ–¹å‘å—åŠ›å¹³è¡¡(c)
 
-    if yindao==2   %ÄÚÈ¦Òıµ¼
-        %ÇóÒıµ¼Ãæ/±£³Ö¼ÜÖ®¼äµÄ·¨ÏòÁ¦ºÍÄ¦²ÁÁ¦£¡
+    if yindao==2   %å†…åœˆå¼•å¯¼
+        %æ±‚å¼•å¯¼é¢/ä¿æŒæ¶ä¹‹é—´çš„æ³•å‘åŠ›å’Œæ‘©æ“¦åŠ›ï¼
         Kbp=11/yindaojianxi;
-        deltayindao=sqrt(Y2^2+Z2^2);     % Æ«ÀëÔ­À´Î»ÖÃµÄ¾àÀë£¡
+        deltayindao=sqrt(Y2^2+Z2^2);     % åç¦»åŸæ¥ä½ç½®çš„è·ç¦»ï¼
         Fyindao=Kbp*abs(deltayindao);
         fyindao=0.05*Fyindao;
         zuoyongjiao=atan(Y2/Z2);    save Fyindao;save fyindao;save zuoyongjiao
-        z12=z12+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*sin(sita(i))+Fyindao*sin(zuoyongjiao);%ÄÚÈ¦Æ½ºâ·½³Ì£¨c£©
-        z13=z13+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*cos(sita(i))+Fyindao*cos(zuoyongjiao);%ÄÚÈ¦Æ½ºâ·½³Ì£¨d£©
-    else     %ÍâÈ¦Òıµ¼ Òıµ¼Ãæ¶ÔÄÚÈ¦Ã»ÓĞ×÷ÓÃÁ¦
+        z12=z12+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*sin(sita(i))+Fyindao*sin(zuoyongjiao);%å†…åœˆå¹³è¡¡æ–¹ç¨‹ï¼ˆcï¼‰
+        z13=z13+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*cos(sita(i))+Fyindao*cos(zuoyongjiao);%å†…åœˆå¹³è¡¡æ–¹ç¨‹ï¼ˆdï¼‰
+    else     %å¤–åœˆå¼•å¯¼ å¼•å¯¼é¢å¯¹å†…åœˆæ²¡æœ‰ä½œç”¨åŠ›
         z12=z12+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*sin(sita(i));
         z13=z13+(Q2(i)*cos(a2(i))+fs2(i)*sin(a2(i)))*cos(sita(i));
         Fyindao=0;    fyindao=0;        zuoyongjiao=0;
     end
     save Fyindao;save fyindao;save zuoyongjiao
 
-    z11=z11+(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)));%ÄÚÈ¦Æ½ºâ·½³Ì£¨a£©
-    z14=z14+((Dm/2+(f2-0.5)*Dw*cos(a0))*(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)))+f2*Dw*fs2(i)*cos(a2(i)) )*cos(sita(i));%ÄÚÈ¦Æ½ºâ·½³Ì£¨d£©
-    z15=z15+((Dm/2+(f2-0.5)*Dw*cos(a0))*(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)))+f2*Dw*fs2(i)*cos(a2(i)) )*sin(sita(i));%ÄÚÈ¦Æ½ºâ·½³Ì£¨e£©
+    z11=z11+(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)));%å†…åœˆå¹³è¡¡æ–¹ç¨‹ï¼ˆaï¼‰
+    z14=z14+((Dm/2+(f2-0.5)*Dw*cos(a0))*(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)))+f2*Dw*fs2(i)*cos(a2(i)) )*cos(sita(i));%å†…åœˆå¹³è¡¡æ–¹ç¨‹ï¼ˆdï¼‰
+    z15=z15+((Dm/2+(f2-0.5)*Dw*cos(a0))*(Q2(i)*sin(a2(i))-fs2(i)*cos(a2(i)))+f2*Dw*fs2(i)*cos(a2(i)) )*sin(sita(i));%å†…åœˆå¹³è¡¡æ–¹ç¨‹ï¼ˆeï¼‰
 end
-Doc=Dy1-Dw*(1-cos(aaa1+aqj*pi/180));      %Íâ¹öµÀÄÚ±íÃæÖ±¾¶
-Dic=Dy2+Dw*(1-cos(aaa2+aqj*pi/180));      %Íâ¹öµÀÄÚ±íÃæÖ±¾¶
+Doc=Dy1-Dw*(1-cos(aaa1+aqj*pi/180));      %å¤–æ»šé“å†…è¡¨é¢ç›´å¾„
+Dic=Dy2+Dw*(1-cos(aaa2+aqj*pi/180));      %å¤–æ»šé“å†…è¡¨é¢ç›´å¾„
 save Doc;
 save Dic;
 
 z11=Fxx-z11;    z12=Fyy-z12;    z13=Fzz-z13;    z14=Myy-z14;    z15=Mzz-z15;
 
-zzzz3=[z1';z3'; z11 ;z12;  z13; z14; z15 ];save zzzz3;            % ¼ÆËãÖá³Ğ ÔØºÉÓÃ
+zzzz3=[z1';z3'; z11 ;z12;  z13; z14; z15 ];save zzzz3;            % è®¡ç®—è½´æ‰¿ è½½è·ç”¨
 result333=0;
 for i=1:2*loadj+5
     result333=result333+zzzz3(i)^2
@@ -297,14 +304,14 @@ save result444;
 for i=1:loadj
     r(i)=r(i)-Dm/2;
 end
-uu=[ x r X2 Y2 Z2 sitay sitaz ]';            %µ±Î»ÒÆ±äÁ¿ÓĞËù¸Ä±äÊ±£¬ĞèÒª¶Ô±äÁ¿¸üĞÂ£¡£¡
+uu=[ x r X2 Y2 Z2 sitay sitaz ]';            %å½“ä½ç§»å˜é‡æœ‰æ‰€æ”¹å˜æ—¶ï¼Œéœ€è¦å¯¹å˜é‡æ›´æ–°ï¼ï¼
 save uu
 
 q1q2a1a2=[Q1 Q2 a1 a2];
 save q1q2a1a2
 save Ph1; save Ph2; save aa1;save aa2;save Fz;
 
-% ¼ÆËã½Ó´¥µãÓëÄÚÈ¦µ²±ßµÄ¼Ğ½Ç£¡£¡£¡
+% è®¡ç®—æ¥è§¦ç‚¹ä¸å†…åœˆæŒ¡è¾¹çš„å¤¹è§’ï¼ï¼ï¼
 for i=1:loadj
     jiaodu2(i)=atan( (xh-X2+x(i))/(Dm/2-Dr2/2+r(i)))-a2(i);
 end
