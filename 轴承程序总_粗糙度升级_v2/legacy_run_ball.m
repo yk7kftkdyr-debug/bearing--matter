@@ -187,6 +187,9 @@ if isfield(contact,'Q1'), state.contact_load_inner = contact.Q1; end
 if isfield(contact,'Q2'), state.contact_load_outer = contact.Q2; end
 if isfield(contact,'oilh1'), state.oil_film_inner = contact.oilh1; end
 if isfield(contact,'oilh2'), state.oil_film_outer = contact.oilh2; end
+if isfield(contact,'a1') && isfield(contact,'a2')
+    state.contact_angle = struct('outer',contact.a1,'inner',contact.a2);
+end
 end
 
 function state = feedback_state(feedback,caseId)
@@ -194,7 +197,7 @@ legacy = feedback.legacy;
 state = struct('bearing_type','ball','case_id',caseId, ...
     'contact_load_inner',legacy.Q1,'contact_load_outer',legacy.Q2, ...
     'oil_film_inner',legacy.oilh1,'oil_film_outer',legacy.oilh2, ...
-    'contact_angle',[], ...
+    'contact_angle',struct('outer',legacy.a1,'inner',legacy.a2), ...
     'working_clearance',legacy.deltaw, ...
     'loaded_element_count',legacy.loadj,'stiffness',legacy.kk, ...
     'legacy_metric',NaN,'returndata',feedback.returndata, ...
@@ -224,7 +227,7 @@ state.roughness_feedback = struct('gamma_final',feedback.metrics.gamma_final, ..
 end
 
 function side = side_state(states)
-fields = {'Qfluid','Qasperity','hMix','lambda','chiA'};
+fields = {'Qtotal','Qfluid','Qasperity','hMix','lambda','chiA','loadBalanceError'};
 side = struct();
 for index = 1:numel(fields)
     name = fields{index};
