@@ -10,7 +10,10 @@ assert(isfield(caseInput,'input') && isfield(caseInput,'output_dir'), ...
 
 gammaSequence = option(roughConfig,'gamma_sequence',[0, 0.5, 1]);
 maxOuter = option(roughConfig,'max_outer_iterations',8);
-omega = option(roughConfig,'relaxation',0.5);
+omega = option(roughConfig,'omega',option(roughConfig,'relaxation',0.5));
+errQTol = option(roughConfig,'errQ_tol',1e-3);
+errHTol = option(roughConfig,'errH_tol',1e-4);
+closureTol = option(roughConfig,'closure_tol',1e-6);
 assert(isnumeric(gammaSequence) && isreal(gammaSequence) && ...
     all(isfinite(gammaSequence)) && all(gammaSequence >= 0) && ...
     all(gammaSequence <= 1), 'run_ball_staggered_feedback:Gamma', ...
@@ -19,6 +22,9 @@ assert(isscalar(maxOuter) && maxOuter >= 1 && maxOuter == floor(maxOuter), ...
     'run_ball_staggered_feedback:Iterations','max_outer_iterations must be a positive integer.');
 assert(isscalar(omega) && omega > 0 && omega <= 1, ...
     'run_ball_staggered_feedback:Relaxation','relaxation must lie in (0,1].');
+assert(all(cellfun(@(x) isscalar(x) && isfinite(x) && x >= 0, ...
+    {errQTol,errHTol,closureTol})), ...
+    'run_ball_staggered_feedback:Tolerances','Feedback tolerances must be finite nonnegative scalars.');
 
 root = fileparts(fileparts(mfilename('fullpath')));
 work = caseInput.output_dir;
@@ -40,6 +46,11 @@ history = struct('gamma',{},'iteration',{},'delta_h_outer_used',{}, ...
     'delta_h_inner_updated',{},'relative_update',{});
 states = struct('outer',[],'inner',[]);
 returndata = [];
+lastData = struct();
+previousMechanical = struct('ball_id',[],'Qouter',[],'Qinner',[]);
+metrics = struct('gamma_final',NaN,'outer_iterations',0,'errQ',NaN, ...
+    'errH',NaN,'closure_error',NaN,'active_set_stable',false, ...
+    'outer_converged',false,'closure_pass',false,'load_share_pass',false);
 
 try
     for gamma = gammaSequence(:).'
@@ -58,6 +69,9 @@ try
             evalc('[~, returndata] = qiujieend(input,config);');
             data = load('q1q2a1a2.mat');
             [targetOuter,targetInner,states] = roughness_targets(data,roughConfig,n);
+            [errQ,activeSetStable] = mechanical_change(data,previousMechanical);
+            previousMechanical = struct('ball_id',data.loadi(:), ...
+                'Qouter',data.Q1(:),'Qinner',data.Q2(:));
 
             deltaOuter = (1-omega)*deltaOuterUsed + omega*gamma*targetOuter;
             deltaInner = (1-omega)*deltaInnerUsed + omega*gamma*targetInner;
@@ -65,6 +79,14 @@ try
             assert_physical_vector(deltaInner,'delta_h_inner');
             hScale = max(max(abs([data.oilh1legacy(:); data.oilh2legacy(:)])),1e-12);
             relativeUpdate = max(abs([deltaOuter-deltaOuterUsed; deltaInner-deltaInnerUsed])) / hScale;
+            closureError = max(abs([states.outer.loadBalanceError, ...
+                states.inner.loadBalanceError]));
+            metrics = struct('gamma_final',gamma,'outer_iterations',iteration, ...
+                'errQ',errQ,'errH',relativeUpdate,'closure_error',closureError, ...
+                'active_set_stable',activeSetStable,'outer_converged',false, ...
+                'closure_pass',closureError <= closureTol, ...
+                'load_share_pass',closureError <= 1e-6);
+            lastData = data;
 
             history(end+1) = struct('gamma',gamma,'iteration',iteration, ...
                 'delta_h_outer_used',deltaOuterUsed,'delta_h_inner_used',deltaInnerUsed, ...
@@ -72,9 +94,11 @@ try
                 'relative_update',relativeUpdate); %#ok<AGROW>
 
             if gamma == 0
+                metrics.outer_converged = true;
                 break;
             end
-            if relativeUpdate < 1e-4
+            if errQ <= errQTol && relativeUpdate <= errHTol && ...
+                    closureError <= closureTol && activeSetStable
                 stableCount = stableCount + 1;
             else
                 stableCount = 0;
@@ -88,14 +112,63 @@ try
                 'OUT_OF_MODEL_DOMAIN: staggered feedback did not stabilize.');
         end
     end
+    if ~isempty(history) && history(end).gamma ~= 0
+        metrics.outer_converged = metrics.outer_converged || stableCount >= 2;
+    end
     result = struct('delta_h_outer',deltaOuter,'delta_h_inner',deltaInner, ...
-        'history',history,'states',states,'returndata',returndata);
+        'history',history,'states',states,'returndata',returndata, ...
+        'legacy',legacy_snapshot(lastData),'metrics',metrics);
     report = struct('success',true,'status','OK','message','OK');
 catch exception
     result = struct('delta_h_outer',deltaOuter,'delta_h_inner',deltaInner, ...
-        'history',history,'states',states,'returndata',returndata);
+        'history',history,'states',states,'returndata',returndata, ...
+        'legacy',legacy_snapshot(lastData),'metrics',metrics);
     report = struct('success',false,'status','OUT_OF_MODEL_DOMAIN', ...
         'message',getReport(exception,'basic','hyperlinks','off'));
+end
+
+function [errQ,activeSetStable] = mechanical_change(data,previous)
+if isempty(previous.ball_id)
+    errQ = 0;
+    activeSetStable = true;
+    return;
+end
+ids = data.loadi(:);
+activeSetStable = isequal(ids,previous.ball_id);
+if ~activeSetStable
+    errQ = Inf;
+    return;
+end
+current = [data.Q1(:); data.Q2(:)];
+old = [previous.Qouter(:); previous.Qinner(:)];
+errQ = max(abs(current-old) ./ max(abs(old),1));
+end
+
+function legacy = legacy_snapshot(data)
+legacy = struct('Q1',[],'Q2',[],'oilh1',[],'oilh2',[],'a1',[],'a2',[], ...
+    'Ph1',[],'Ph2',[],'kk',[],'deltaw',[],'loadj',NaN);
+if isempty(fieldnames(data))
+    return;
+end
+fields = {'Q1','Q2','oilh1','oilh2','a1','a2','Ph1','Ph2','loadj'};
+for index = 1:numel(fields)
+    name = fields{index};
+    if isfield(data,name)
+        legacy.(name) = data.(name);
+    end
+end
+legacy.kk = load_scalar('kk.mat','kk');
+legacy.deltaw = load_scalar('deltaw.mat','deltaw');
+end
+
+function value = load_scalar(fileName,fieldName)
+value = [];
+if isfile(fileName)
+    data = load(fileName);
+    if isfield(data,fieldName)
+        value = data.(fieldName);
+    end
+end
 end
 end
 
