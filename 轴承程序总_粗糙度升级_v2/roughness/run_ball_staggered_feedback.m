@@ -51,6 +51,7 @@ previousMechanical = struct('ball_id',[],'Qouter',[],'Qinner',[]);
 metrics = struct('gamma_final',NaN,'outer_iterations',0,'errQ',NaN, ...
     'errH',NaN,'closure_error',NaN,'active_set_stable',false, ...
     'outer_converged',false,'closure_pass',false,'load_share_pass',false);
+traction = empty_traction();
 
 try
     for gamma = gammaSequence(:).'
@@ -115,16 +116,201 @@ try
     if ~isempty(history) && history(end).gamma ~= 0
         metrics.outer_converged = metrics.outer_converged || stableCount >= 2;
     end
+    if option(roughConfig,'feedback_level',1) == 2
+        traction = run_frozen_traction(input,roughConfig,lastData,states, ...
+            deltaOuter,deltaInner,n);
+        assert(traction.normal_state_unchanged, ...
+            'run_ball_staggered_feedback:NormalMutation', ...
+            'Frozen traction feedback changed the Stage 2 normal state.');
+    end
     result = struct('delta_h_outer',deltaOuter,'delta_h_inner',deltaInner, ...
         'history',history,'states',states,'returndata',returndata, ...
-        'legacy',legacy_snapshot(lastData),'metrics',metrics);
+        'legacy',legacy_snapshot(lastData),'metrics',metrics,'traction',traction);
     report = struct('success',true,'status','OK','message','OK');
 catch exception
     result = struct('delta_h_outer',deltaOuter,'delta_h_inner',deltaInner, ...
         'history',history,'states',states,'returndata',returndata, ...
-        'legacy',legacy_snapshot(lastData),'metrics',metrics);
+        'legacy',legacy_snapshot(lastData),'metrics',metrics,'traction',traction);
     report = struct('success',false,'status','OUT_OF_MODEL_DOMAIN', ...
         'message',getReport(exception,'basic','hyperlinks','off'));
+end
+
+function traction = run_frozen_traction(input,roughConfig,data,states,deltaOuter,deltaInner,n)
+% Apply only frozen traction magnitudes in the pre-existing speed residual.
+% The Stage 2 normal result above is complete before this function runs.
+assert(~isempty(fieldnames(data)) && isfield(states,'ball_id'), ...
+    'run_ball_staggered_feedback:Traction','No converged normal state is available for Level 2 traction.');
+legacy = legacy_traction_state(data);
+normal = struct('ball_id',states.ball_id(:),'outer',states.outer,'inner',states.inner);
+normalSnapshot = capture_normal_snapshot(data);
+sequence = option(roughConfig,'gamma_mu_sequence',[0 0.5 1]);
+assert(isnumeric(sequence) && isreal(sequence) && all(isfinite(sequence)) && ...
+    all(sequence >= 0) && all(sequence <= 1) && sequence(1) == 0 && sequence(end) == 1, ...
+    'run_ball_staggered_feedback:TractionGamma', ...
+    'gamma_mu_sequence must begin at zero and end at one.');
+for index = 1:numel(sequence)
+    gammaMu = sequence(index);
+    state = build_ball_traction_feedback_state(normal,legacy,gammaMu);
+    assert(state.finite,'run_ball_staggered_feedback:TractionPhysical', ...
+        'Mixed traction state is nonphysical.');
+    micro_config = make_micro_interface_config(struct('roughness',roughConfig));
+    micro_config.roughness.enabled = true;
+    % Level 1 keeps the already-validated frozen normal-film path active;
+    % the nested traction switch is the sole Level-2 addition to ffSPEED1.
+    micro_config.roughness.feedback_level = 1;
+    micro_config.roughness.feedback.ball.delta_h_outer = deltaOuter;
+    micro_config.roughness.feedback.ball.delta_h_inner = deltaInner;
+    micro_config.roughness.feedback.ball.traction = struct('enabled',true, ...
+        'ball_id',state.ball_id(:),'Tused_outer',by_ball_id(state.outer,n,'Tused'), ...
+        'Tused_inner',by_ball_id(state.inner,n,'Tused'),'gamma_mu',gammaMu);
+    micro_config.roughness.feedback.ball.normal_snapshot = normalSnapshot;
+    save('micro_config_runtime.mat','micro_config');
+    evalc('qiujieSPEED1(input);');
+    assert_speed_state();
+    restore_normal_snapshot(normalSnapshot);
+end
+after = load('q1q2a1a2.mat');
+traction = state;
+traction.gamma_mu_final = sequence(end);
+traction.speed_residual = load_scalar('result1134.mat','result1134');
+traction.limit_pass = smooth_limit(state);
+[traction.normal_state_unchanged,traction.normal_state_diagnostic] = ...
+    same_normal_state(data,after);
+end
+
+function snapshot = capture_normal_snapshot(data)
+% Level 2 operates on an immutable Stage 2 normal solution.  This local
+% snapshot is passed to ffSPEED1 and restored after each speed iteration.
+required = {'loadi','loadj','q1q2a1a2','Q1','Q2','a1','a2','oilh1','oilh2'};
+assert(all(isfield(data,required)), ...
+    'run_ball_staggered_feedback:NormalSnapshot', ...
+    'Final Stage 2 output lacks a required normal-state field.');
+snapshot = struct();
+for index = 1:numel(required)
+    name = required{index};
+    snapshot.(name) = data.(name);
+end
+snapshot.Ph1 = load_required_field('Ph1.mat','Ph1');
+snapshot.Ph2 = load_required_field('Ph2.mat','Ph2');
+snapshot.aa1 = load_required_field('aa1.mat','aa1');
+snapshot.aa2 = load_required_field('aa2.mat','aa2');
+end
+
+function restore_normal_snapshot(snapshot)
+% Do not leave a speed-only Level 2 evaluation with altered normal outputs.
+q1q2a1a2 = snapshot.q1q2a1a2; %#ok<NASGU>
+Q1 = snapshot.Q1; Q2 = snapshot.Q2; %#ok<NASGU>
+a1 = snapshot.a1; a2 = snapshot.a2; %#ok<NASGU>
+oilh1 = snapshot.oilh1; oilh2 = snapshot.oilh2; %#ok<NASGU>
+Ph1 = snapshot.Ph1; Ph2 = snapshot.Ph2; %#ok<NASGU>
+aa1 = snapshot.aa1; aa2 = snapshot.aa2; %#ok<NASGU>
+loadi = snapshot.loadi; loadj = snapshot.loadj; %#ok<NASGU>
+save('q1q2a1a2.mat','q1q2a1a2','Q1','Q2','a1','a2','oilh1','oilh2','loadi','loadj');
+save('oilh1.mat','oilh1'); save('oilh2.mat','oilh2');
+save('Ph1.mat','Ph1'); save('Ph2.mat','Ph2');
+save('aa1.mat','aa1'); save('aa2.mat','aa2');
+end
+
+function value = load_required_field(fileName,fieldName)
+assert(isfile(fileName), 'run_ball_staggered_feedback:NormalSnapshot', ...
+    'Missing frozen normal output %s.',fileName);
+source = load(fileName,fieldName);
+assert(isfield(source,fieldName), 'run_ball_staggered_feedback:NormalSnapshot', ...
+    'Missing frozen normal field %s.',fieldName);
+value = source.(fieldName);
+end
+
+function legacy = legacy_traction_state(data)
+required = {'loadi','loadj'};
+assert(all(isfield(data,required)), ...
+    'run_ball_staggered_feedback:Traction','Missing loaded-ball map for traction feedback.');
+legacy = struct('ball_id',data.loadi(:), ...
+    'Touter',load_vector('T1.mat','T1',data.loadj), ...
+    'Tinner',load_vector('T2.mat','T2',data.loadj), ...
+    'slip_outer',load_vector('deltaU1.mat','deltaU1',data.loadj), ...
+    'slip_inner',load_vector('deltaU2.mat','deltaU2',data.loadj));
+end
+
+function value = load_vector(fileName,fieldName,count)
+assert(isfile(fileName),'run_ball_staggered_feedback:Traction', ...
+    'Missing legacy traction file %s.',fileName);
+source = load(fileName);
+assert(isfield(source,fieldName),'run_ball_staggered_feedback:Traction', ...
+    'Missing %s in %s.',fieldName,fileName);
+value = source.(fieldName)(:);
+assert(numel(value) == count && all(isfinite(value)) && isreal(value) && ...
+    all(value > 0),'run_ball_staggered_feedback:Traction', ...
+    'Invalid %s for the loaded-ball traction map.',fieldName);
+end
+
+function values = by_ball_id(contacts,n,fieldName)
+values = zeros(n,1);
+for index = 1:numel(contacts)
+    ballId = contacts(index).ball_id;
+    assert(ballId >= 1 && ballId <= n && values(ballId) == 0, ...
+        'run_ball_staggered_feedback:BallMapping','Invalid or duplicate ball identifier.');
+    values(ballId) = contacts(index).(fieldName);
+end
+end
+
+function assert_speed_state()
+residual = load_scalar('result1134.mat','result1134');
+speed = load_scalar('wwmin34.mat','wwmin34');
+assert(~isempty(residual) && isscalar(residual) && isfinite(residual) && ...
+    ~isempty(speed) && all(isfinite(speed(:))) && isreal(speed), ...
+    'run_ball_staggered_feedback:TractionConvergence', ...
+    'Legacy speed solve did not return a finite frozen-traction state.');
+end
+
+function passed = smooth_limit(traction)
+outer = traction.outer;
+inner = traction.inner;
+passed = all(abs([outer.muMix]-[outer.muFluid]) <= 1e-12) && ...
+    all(abs([inner.muMix]-[inner.muFluid]) <= 1e-12) && ...
+    all(abs([outer.Tused]-[outer.Tlegacy]) <= 1e-12) && ...
+    all(abs([inner.Tused]-[inner.Tlegacy]) <= 1e-12);
+end
+
+function [passed,diagnostic] = same_normal_state(before,after)
+% Preserve field-level evidence before the Level-2 safety assertion.
+% q1q2a1a2.mat is written by ffLOAD in both the final normal solve and
+% every ffSPEED1 residual evaluation; the two paths must be distinguishable.
+fields = {'Q1','Q2','a1','a2'};
+passed = true;
+diagnostic = struct('tolerance',1e-12, ...
+    'before_source','final Stage 2 normal ffLOAD output (lastData)', ...
+    'after_source','qiujieSPEED1 -> ffSPEED1 -> ffLOAD(datafromvb,loadi,www3) -> q1q2a1a2.mat', ...
+    'all_within_tolerance',false);
+for index = 1:numel(fields)
+    name = fields{index};
+    assert(isfield(before,name) && isfield(after,name), ...
+        'run_ball_staggered_feedback:NormalState','Missing %s after traction solve.',name);
+    a = before.(name)(:); b = after.(name)(:);
+    item = struct('before_source',diagnostic.before_source, ...
+        'after_source',diagnostic.after_source,'before_count',numel(a), ...
+        'after_count',numel(b),'size_equal',isequal(size(a),size(b)), ...
+        'max_absolute_difference',Inf,'max_relative_difference',Inf, ...
+        'exceeds_tolerance_count',Inf,'within_tolerance',false);
+    if item.size_equal
+        difference = abs(a-b);
+        relative = difference ./ max(abs(a),1);
+        item.max_absolute_difference = max(difference);
+        item.max_relative_difference = max(relative);
+        item.exceeds_tolerance_count = nnz(relative > diagnostic.tolerance);
+        item.within_tolerance = item.exceeds_tolerance_count == 0;
+    end
+    diagnostic.(name) = item;
+    if ~item.within_tolerance
+        passed = false;
+    end
+end
+diagnostic.all_within_tolerance = passed;
+end
+
+function traction = empty_traction()
+traction = struct('ball_id',[],'gamma_mu',NaN,'gamma_mu_final',NaN, ...
+    'outer',[],'inner',[],'finite',false,'speed_residual',NaN, ...
+    'limit_pass',false,'normal_state_unchanged',false);
 end
 
 function [errQ,activeSetStable] = mechanical_change(data,previous)

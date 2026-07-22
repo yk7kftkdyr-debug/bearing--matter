@@ -3,7 +3,7 @@ function [state, report] = legacy_run_ball(caseInput)
 root = fileparts(mfilename('fullpath'));
 addpath(fullfile(root,'roughness'));
 roughConfig = roughness_config(caseInput);
-if roughConfig.enabled && roughConfig.feedback_level == 1
+if roughConfig.enabled && ismember(roughConfig.feedback_level,[1 2])
     [state,report] = run_feedback(caseInput,roughConfig);
 else
     [state,report] = run_legacy(caseInput,roughConfig);
@@ -112,7 +112,7 @@ startTime = tic;
 [feedback,runnerReport] = run_ball_staggered_feedback(runnerCase,roughConfig);
 if ~runnerReport.success
     state = empty_feedback_state(c,feedback);
-    report = feedback_report(false,false,false,runnerReport,feedback,c,toc(startTime));
+    report = feedback_report(false,false,false,runnerReport,feedback,c,toc(startTime),roughConfig.feedback_level);
     return;
 end
 
@@ -122,8 +122,11 @@ finite = all(isfinite(physical)) && isreal(physical);
 loadSharePass = feedback.metrics.load_share_pass;
 closurePass = feedback.metrics.closure_pass;
 outerConverged = feedback.metrics.outer_converged;
-success = finite && loadSharePass && closurePass && outerConverged;
-report = feedback_report(success,closurePass,loadSharePass,runnerReport,feedback,c,toc(startTime));
+tractionPass = roughConfig.feedback_level < 2 || (isfield(feedback,'traction') && ...
+    feedback.traction.finite && feedback.traction.gamma_mu_final == 1 && ...
+    feedback.traction.normal_state_unchanged);
+success = finite && loadSharePass && closurePass && outerConverged && tractionPass;
+report = feedback_report(success,closurePass,loadSharePass,runnerReport,feedback,c,toc(startTime),roughConfig.feedback_level);
 if ~success
     report.status = 'ROUGHNESS_FEEDBACK_INVALID_PHYSICS';
     if finite && loadSharePass && closurePass
@@ -153,8 +156,8 @@ end
 if ~config.enabled
     config.feedback_level = 0;
 end
-assert(ismember(config.feedback_level,[0 1]), ...
-    'legacy_run_ball:FeedbackLevel','feedback_level must be 0 or 1.');
+assert(ismember(config.feedback_level,[0 1 2]), ...
+    'legacy_run_ball:FeedbackLevel','feedback_level must be 0, 1, or 2.');
 end
 
 function base = merge_config(base,overrides)
@@ -208,7 +211,8 @@ state.roughness_feedback = struct('gamma_final',feedback.metrics.gamma_final, ..
     'closure_error',feedback.metrics.closure_error, ...
     'active_set_stable',feedback.metrics.active_set_stable, ...
     'outer',side_state(feedback.states.outer), ...
-    'inner',side_state(feedback.states.inner));
+    'inner',side_state(feedback.states.inner), ...
+    'traction',traction_state(feedback));
 end
 
 function state = empty_feedback_state(c,feedback)
@@ -223,7 +227,18 @@ state.roughness_feedback = struct('gamma_final',feedback.metrics.gamma_final, ..
     'closure_error',feedback.metrics.closure_error, ...
     'active_set_stable',feedback.metrics.active_set_stable, ...
     'outer',side_state(feedback.states.outer), ...
-    'inner',side_state(feedback.states.inner));
+    'inner',side_state(feedback.states.inner), ...
+    'traction',traction_state(feedback));
+end
+
+function traction = traction_state(feedback)
+if isfield(feedback,'traction')
+    traction = feedback.traction;
+else
+    traction = struct('ball_id',[],'gamma_mu',NaN,'gamma_mu_final',NaN, ...
+        'outer',[],'inner',[],'finite',false,'speed_residual',NaN, ...
+        'limit_pass',false,'normal_state_unchanged',false);
+end
 end
 
 function side = side_state(states)
@@ -249,7 +264,7 @@ report = struct('success',result.success,'status',legacy_status(result), ...
     'message',result.warning);
 end
 
-function report = feedback_report(success,closurePass,loadSharePass,runnerReport,feedback,c,runtime)
+function report = feedback_report(success,closurePass,loadSharePass,runnerReport,feedback,c,runtime,feedbackLevel)
 if success
     status = 'ROUGHNESS_FEEDBACK_SUCCESS';
 else
@@ -258,7 +273,7 @@ end
 report = struct('success',success,'status',status,'case_id',c.case_id, ...
     'runtime',runtime,'warning_count',0,'nan_count',0,'inf_count',0, ...
     'complex_count',0,'message',runnerReport.message, ...
-    'feedback_level',1,'gamma_final',feedback.metrics.gamma_final, ...
+    'feedback_level',feedbackLevel,'gamma_final',feedback.metrics.gamma_final, ...
     'outer_converged',feedback.metrics.outer_converged, ...
     'closure_pass',closurePass,'load_share_pass',loadSharePass);
 end

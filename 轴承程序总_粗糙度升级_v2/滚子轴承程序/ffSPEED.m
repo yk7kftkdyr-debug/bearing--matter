@@ -89,6 +89,20 @@ for i=1:loadj
         deltaU2(i)=abs(Dm/2*((1-gama)*(W2-Wo(i))-gama*Wx(i)));
     end
 end
+% STAGE3C_LEVEL2_TRACTION_HOOK_BEGIN
+micro_config = load_micro_interface_config();
+traction_state = struct();
+if isfield(micro_config,'roughness') && isstruct(micro_config.roughness) && ...
+        isfield(micro_config.roughness,'feedback') && isstruct(micro_config.roughness.feedback) && ...
+        isfield(micro_config.roughness.feedback,'roller') && isstruct(micro_config.roughness.feedback.roller) && ...
+        isfield(micro_config.roughness.feedback.roller,'traction_state')
+    traction_state = micro_config.roughness.feedback.roller.traction_state;
+end
+[T1,T2,traction_override_report] = apply_roller_traction_override(T1,T2,loadi,loadii,traction_state,micro_config);
+if ~traction_override_report.success
+    error('ffSPEED:RoughnessTraction','%s',traction_override_report.message);
+end
+% STAGE3C_LEVEL2_TRACTION_HOOK_END
 
    % 最小油膜厚度计算!!!
    %yang解释：等温、考虑热效应、考虑表面纹理参数，使用对应油膜厚度计算公式；

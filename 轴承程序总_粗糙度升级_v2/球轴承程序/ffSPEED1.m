@@ -6,7 +6,24 @@ ballspeed=ttspeed;
 for i=1:loadj
     x(i)=www3(i);   r(i)=www3(loadj+i);
 end 
-ffLOAD(datafromvb,loadi,www3); load q1q2a1a2;load Ph1;load Ph2;load aa1;load aa2
+% STAGE3B_LEVEL2_NORMAL_SNAPSHOT_BEGIN
+micro_config = load_micro_interface_config();
+use_normal_snapshot = isfield(micro_config,'roughness') && micro_config.roughness.enabled && ...
+    isfield(micro_config.roughness,'feedback') && isfield(micro_config.roughness.feedback,'ball') && ...
+    isfield(micro_config.roughness.feedback.ball,'normal_snapshot');
+if use_normal_snapshot
+    normal_snapshot = micro_config.roughness.feedback.ball.normal_snapshot;
+    required_snapshot = {'loadj','loadi','q1q2a1a2','Ph1','Ph2','aa1','aa2'};
+    assert(all(isfield(normal_snapshot,required_snapshot)) && normal_snapshot.loadj == loadj && ...
+        isequal(normal_snapshot.loadi(:),loadi(:)), ...
+        'ffSPEED1:NormalSnapshot','Invalid frozen Stage 2 normal snapshot.');
+    q1q2a1a2 = normal_snapshot.q1q2a1a2;
+    Ph1 = normal_snapshot.Ph1; Ph2 = normal_snapshot.Ph2;
+    aa1 = normal_snapshot.aa1; aa2 = normal_snapshot.aa2;
+else
+    ffLOAD(datafromvb,loadi,www3); load q1q2a1a2;load Ph1;load Ph2;load aa1;load aa2
+end
+% STAGE3B_LEVEL2_NORMAL_SNAPSHOT_END
 for i=1:loadj
     Q1(i)=q1q2a1a2(i);    Q2(i)=q1q2a1a2(loadj+i);  a1(i)=q1q2a1a2(2*loadj+i);  a2(i)=q1q2a1a2(3*loadj+i);
 end
@@ -179,7 +196,24 @@ else
     deltaU2(i)=abs(+(W2-Wo(i))*Dm/2-( abs(Wx(i))*cos(a2(i))+ abs (Wz(i))*sin(a2(i))+(W2-Wo(i))*cos(a2(i)))*(Ri-(Ri^2-aa2(i)^2)^0.5+((Dw/2)^2-aa2(i)^2)^0.5));
     U2(i)=abs(+(W2-Wo(i))*Dm/4+0.5*( abs(Wx(i))*cos(a2(i))+abs(Wz(i))*sin(a2(i))-(W2-Wo(i))*cos(a2(i)))*(Ri-(Ri^2-aa2(i)^2)^0.5+((Dw/2)^2-aa2(i)^2)^0.5));    
 end
-% 最小油膜厚度计算!!!
+% Stage 3B: use only the frozen Level-2 traction magnitudes in the existing
+% speed residual.  The signs and all speed equations below remain legacy.
+micro_config = load_micro_interface_config();
+if isfield(micro_config,'roughness') && micro_config.roughness.enabled && ...
+        isfield(micro_config.roughness,'feedback') && ...
+        isfield(micro_config.roughness.feedback,'ball') && ...
+        isfield(micro_config.roughness.feedback.ball,'traction')
+    traction = micro_config.roughness.feedback.ball.traction;
+    if isfield(traction,'enabled') && traction.enabled
+        ballId = loadi(i);
+        assert(numel(traction.Tused_outer) >= ballId && ...
+            numel(traction.Tused_inner) >= ballId, ...
+            'ffSPEED1:RoughnessTraction','Missing frozen traction for loaded ball.');
+        T1(i) = traction.Tused_outer(ballId);
+        T2(i) = traction.Tused_inner(ballId);
+    end
+end
+% 最小榆膜厚度计算!!!
 L1(i)=niandu0*(U1(i))^2*beita0/K;       
 Ct1(i)=1/(1+0.241*(1+14.8*S1(i)^0.83)*(L1(i))^0.64);  %Chenzhe Gai 热修正因子
 L2(i)=niandu0*(U2(i))^2*beita0/K;
