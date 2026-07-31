@@ -228,12 +228,42 @@ end
      delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift;
      delta2(i)=sqrt(( ((f1+f2-1)*Dw )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-oilh2(i)+debris_shift;
 
-Q1(i)=sqrt( ( delta1(i)*pi*(2*ee21*K1^2/(pi))^0.333/(ee11))^3*4*E1^2/(9*rou1) );
-Q2(i)=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
-[Q1(i),~]=ball_roughness_normal_feedback(Q1(i),Q1(i),micro_config);
-[Q2(i),~]=ball_roughness_normal_feedback(Q2(i),Q2(i),micro_config);
+Q1legacy=sqrt( ( delta1(i)*pi*(2*ee21*K1^2/(pi))^0.333/(ee11))^3*4*E1^2/(9*rou1) );
+Q2legacy=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
     a1(i)=atan((xx(i))/y(i));
     a2(i)=atan((((f1+f2-1)*Dw    )*sin(a0)+(X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i))))-(xx(i)))/(((f1+f2-1)*Dw)*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i)) -y(i)));
+if isfield(micro_config,'roughness') && micro_config.roughness.enabled && ...
+        isfield(micro_config.roughness,'feedback_level') && micro_config.roughness.feedback_level==1
+    aa1legacy=(6*K1^2*ee21*R21*Q1legacy/(E1*pi))^0.3333;
+    aa2legacy=(6*K2^2*ee22*R22*Q2legacy/(E2*pi))^0.3333;
+    outer_pair=micro_config.roughness.outer_pair;
+    outer_pair.RqSurface1=micro_config.roughness.Rq_outer;
+    outer_pair.RqSurface2=micro_config.roughness.Rq_element;
+    outer_pair.Ered=E1; outer_pair.nominalArea=pi*aa1legacy*(aa1legacy/K1);
+    inner_pair=micro_config.roughness.inner_pair;
+    inner_pair.RqSurface1=micro_config.roughness.Rq_inner;
+    inner_pair.RqSurface2=micro_config.roughness.Rq_element;
+    inner_pair.Ered=E2; inner_pair.nominalArea=pi*aa2legacy*(aa2legacy/K2);
+    feedback_snapshot=struct('loadedElementIds',loadi(i), ...
+        'deltaGeomInner',delta2(i)+oilh2(i),'deltaGeomOuter',delta1(i)+oilh1(i), ...
+        'legacyQInner',Q2legacy,'legacyQOuter',Q1legacy, ...
+        'innerPointGeometry',struct('K',Q2legacy/delta2(i)^1.5), ...
+        'outerPointGeometry',struct('K',Q1legacy/delta1(i)^1.5), ...
+        'innerLubricant',struct('h',oilh2(i)),'outerLubricant',struct('h',oilh1(i)), ...
+        'innerRoughPair',inner_pair,'outerRoughPair',outer_pair, ...
+        'contactAngle',struct('inner',a2(i),'outer',a1(i)));
+    [feedback_load,feedback_state]=ball_roughness_normal_feedback(feedback_snapshot,micro_config);
+    assert(feedback_state.feedback_active,'ffLOAD:RoughnessFeedback','Normal feedback state is inactive.');
+    Q1(i)=feedback_load.outer;
+    Q2(i)=feedback_load.inner;
+    Q1traction=Q1legacy;
+    Q2traction=Q2legacy;
+else
+    Q1(i)=Q1legacy;
+    Q2(i)=Q2legacy;
+    Q1traction=Q1(i);
+    Q2traction=Q2(i);
+end
     aa1(i)=(6*K1^2*ee21*R21*Q1(i)/(E1*pi))^0.3333; b1(i)=aa1(i)/K1;    %求得接触椭圆长短轴！
     aa2(i)=(6*K2^2*ee22*R22*Q2(i)/(E2*pi))^0.3333; b2(i)=aa2(i)/K2;   %求得接触椭圆长短轴！
 
@@ -253,11 +283,11 @@ Q2(i)=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
     %求球沿椭圆长轴方向的摩擦力！ 最初取摩擦系数为0.02，待转速求得后再重新收敛！！！！
     deltaU1(i)=abs(-Wo*Dm/2+abs(Wx)*cos(a0)-Wo*cos(a0)*(Dw/2));
     S12(i)=abs(deltaU1(i)/U1(i));
-    miuI(i)=0.0127*(50/(50-S12(i)))*log(0.584*Q1(i)/niandu0/deltaU1(i)/(U1(i))^2);    %CHENZHEGAI
+    miuI(i)=0.0127*(50/(50-S12(i)))*log(0.584*Q1traction/niandu0/deltaU1(i)/(U1(i))^2);    %CHENZHEGAI
     deltaU2(i)=abs(+(W2-Wo)*Dm/2- abs(Wx)*cos(a0)+(W2-Wo)*cos(a0)*(Dw/2));
     S22(i)=abs(deltaU2(i)/U2(i));
-    miuO(i)=0.0127*(50/(50-S22(i)))*log(0.584*Q2(i)/niandu0/deltaU2(i)/(U2(i))^2);    %CHENZHEGAI
-    fs1(i)=miuI(i)*Q1(i);fs2(i)=miuO(i)*Q2(i);
+    miuO(i)=0.0127*(50/(50-S22(i)))*log(0.584*Q2traction/niandu0/deltaU2(i)/(U2(i))^2);    %CHENZHEGAI
+    fs1(i)=miuI(i)*Q1traction;fs2(i)=miuO(i)*Q2traction;
 
     Fz(i)=m*(Wo)^2*r(i);
     z1(i)=-Q1(i)*sin(a1(i))+Q2(i)*sin(a2(i))+fs1(i)*cos(a1(i))-fs2(i)*cos(a2(i));%球x方向受力平衡(a)，fs1与崔力论文中计算不同
