@@ -228,8 +228,10 @@ end
      delta1(i)=sqrt((xx(i))^2+y(i)^2)-(f1-0.5)*Dw-oilh1(i)+debris_shift;
      delta2(i)=sqrt(( ((f1+f2-1)*Dw )*sin(a0)+X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i)))-(xx(i)))^2+( ((f1+f2-1)*Dw )*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i))-y(i))^2)-((f2-0.5)*Dw )-oilh2(i)+debris_shift;
 
-    Q1(i)=sqrt( ( delta1(i)*pi*(2*ee21*K1^2/(pi))^0.333/(ee11))^3*4*E1^2/(9*rou1) );
-    Q2(i)=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
+Q1(i)=sqrt( ( delta1(i)*pi*(2*ee21*K1^2/(pi))^0.333/(ee11))^3*4*E1^2/(9*rou1) );
+Q2(i)=sqrt( ( delta2(i)*pi*(2*ee22*K2^2/(pi))^0.333/(ee12))^3*4*E2^2/(9*rou2) );
+[Q1(i),~]=ball_roughness_normal_feedback(Q1(i),Q1(i),micro_config);
+[Q2(i),~]=ball_roughness_normal_feedback(Q2(i),Q2(i),micro_config);
     a1(i)=atan((xx(i))/y(i));
     a2(i)=atan((((f1+f2-1)*Dw    )*sin(a0)+(X2+R222*(sitaz*sin(sita(i))+sitay*cos(sita(i))))-(xx(i)))/(((f1+f2-1)*Dw)*cos(a0)+Z2*cos(sita(i))+Y2*sin(sita(i)) -y(i)));
     aa1(i)=(6*K1^2*ee21*R21*Q1(i)/(E1*pi))^0.3333; b1(i)=aa1(i)/K1;    %求得接触椭圆长短轴！
@@ -317,4 +319,3 @@ for i=1:loadj
 end
 jiaodu2=jiaodu2*180/pi;
 save jiaodu2
-
