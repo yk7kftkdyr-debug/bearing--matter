@@ -1,4 +1,4 @@
-function qiujieLOAD(datafromvb)   %牛顿 法求解非线性方程组
+function [loadi,www3,activeState]=qiujieLOAD(datafromvb,activeControl)   %牛顿 法求解非线性方程组
 
 
 % 数据输入部分！！
@@ -23,7 +23,35 @@ Dr1=Dy1-2*dangbianxishu1*Dw;Dr2=Dy2+2*dangbianxishu2*Dw;  % 挡边直径（引导面直径
 result000=1e4;result111=1e4;result222=1e4;nn=1;  i=1;iii=1;j=1;
 min1=1e20;
 
-loadj=n; loadi=1:n; mark1=0;         %mark0 is the mark of computation!!!
+if nargin<2 || isempty(activeControl)
+    activeControl=struct('active_set_mode','legacy');
+end
+if ~isstruct(activeControl) || ~isfield(activeControl,'active_set_mode')
+    error('qiujieLOAD:ActiveSetControl','active_set_mode is required.');
+end
+activeSetMode=activeControl.active_set_mode;
+if ~(strcmp(activeSetMode,'legacy') || strcmp(activeSetMode,'freeze_newton'))
+    error('qiujieLOAD:ActiveSetMode','active_set_mode must be legacy or freeze_newton.');
+end
+freezeNewton=strcmp(activeSetMode,'freeze_newton');
+allow_active_set_update=~freezeNewton;
+if freezeNewton
+    if ~isfield(activeControl,'initial_loadi')
+        error('qiujieLOAD:ActiveSetControl','freeze_newton requires initial_loadi.');
+    end
+    loadi=activeControl.initial_loadi;
+    if ~isnumeric(loadi) || ~isrow(loadi) || isempty(loadi) || ...
+            any(~isfinite(loadi)) || any(loadi~=fix(loadi)) || ...
+            any(loadi<1) || any(loadi>n) || numel(unique(loadi))~=numel(loadi)
+        error('qiujieLOAD:ActiveSetControl','initial_loadi must contain unique valid element ids.');
+    end
+else
+    loadi=1:n;
+end
+loadj=length(loadi); mark1=0;         %mark0 is the mark of computation!!!
+activeState=struct('active_set_mode',activeSetMode, ...
+    'loadi_history',{{loadi}},'next_loadi',loadi, ...
+    'active_set_stable',false);
 % 给定变量初值！！x r X2 Y2  Z2 sitay sitaz初始值
 x=[];r=[];
 for i=1:loadj
@@ -41,6 +69,7 @@ if Myy>=1 |  Mzz>=1             % 当存在My Mz时
 
 while (loadj>1 & mark1~=2)         %滚动体承载个数循环
 while( result333>0.01 )        %单次计算 循环
+    activeState.loadi_history{end+1}=loadi;
     ffLOAD(datafromvb,loadi,www3);      load result333;
     load uu; www3=uu;
     JffLOAD(datafromvb,loadi,www3);    load Jzz;
@@ -75,30 +104,15 @@ for i=1:loadj
     end
 end
 if mark1==1      % 表示计算出错,此时要去掉 承载  滚动体个数!!!!
-  if Fyy==0    
-    if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[loadi(1:loadj/2-1) loadi(loadj/2+1:loadj)];           % 只去掉一个中间的球
-       else
-           loadi=[loadi(1:floor(loadj/2))  loadi(floor(loadj/2)+2:loadj)];  % 去掉1个球
+    activeState.next_loadi=reduce_active_set(loadi,loadj,n,Fyy,Fzz);
+    if allow_active_set_update
+        loadi=activeState.next_loadi;
+    else
+        break
     end
-  else               %当Fyy~=0 时，不能按照 上方 承载大于下方计算！！！ 应该是 合力 处载荷最大！！ 而不是0处 球！！！
-     lipianjiao=atan(Fyy/(Fzz+1));   % Fyy 与 Fzz 的合力与Z 轴的夹角！！！ 
-     xishu=lipianjiao/(2*pi);    % 当存在Fyy 时， 去掉承载滚动体个数时 就不能从最下端开始了，而应该沿 合力的反方向！！！
-     if (ceil(n*xishu)-(loadj/2-1))<1        % 当可以从1号球开始时
-      if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[loadi(1:ceil(n*xishu))  loadi(ceil(n*xishu)+1:ceil(n*xishu)+loadj/2-1)  loadi(ceil(n*xishu)+loadj/2+1:loadj)];   % 只去掉一个中间的球
-       else
-           loadi=[loadi(1:ceil(n*xishu))  loadi(ceil(n*xishu)+1:ceil(n*xishu)+floor(loadj/2)) loadi(ceil(n*xishu)+floor(loadj/2)+2:loadj)];    % 去掉1个球
-       end
-     else         % 当 不 可以从1号球开始时
-        if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[ (ceil(n*xishu)-(loadj/2-1)):ceil(n*xishu)+loadj/2-1 ];  % 只去掉一个中间的球
-       else
-           loadi=[  (ceil(n*xishu)-floor(loadj/2)+1):ceil(n*xishu)+floor(loadj/2)   ];    % 去掉1个球
-       end 
-     end    
-  end  
 else
+    activeState.next_loadi=loadi;
+    activeState.active_set_stable=true;
     mark1=2;              %说明收敛且没有出错！！！！
     break
 end
@@ -119,6 +133,7 @@ else          % 当 不 存在My  Mz 时
     
 while (loadj>1 & mark1~=2)         %滚动体承载个数循环
 while( result444>0.01 )        %单次计算 循环
+    activeState.loadi_history{end+1}=loadi;
     ffLOAD(datafromvb,loadi,www3);      load result444; 
     load uu; www3=uu;
     JffLOAD(datafromvb,loadi,www3);    load Jzz;
@@ -153,30 +168,15 @@ for i=1:loadj
     end
 end
 if mark1==1      % 表示计算出错,此时要去掉 承载  滚动体个数!!!!
-  if Fyy==0    
-    if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[loadi(1:loadj/2-1) loadi(loadj/2+1:loadj)];           % 只去掉一个中间的球
-       else
-           loadi=[loadi(1:floor(loadj/2))  loadi(floor(loadj/2)+2:loadj)];  % 去掉1个球
+    activeState.next_loadi=reduce_active_set(loadi,loadj,n,Fyy,Fzz);
+    if allow_active_set_update
+        loadi=activeState.next_loadi;
+    else
+        break
     end
-  else               %当Fyy~=0 时，不能按照 上方 承载大于下方计算！！！ 应该是 合力 处载荷最大！！ 而不是0处 球！！！
-     lipianjiao=atan(Fyy/(Fzz+1));   % Fyy 与 Fzz 的合力与Z 轴的夹角！！！ 
-     xishu=lipianjiao/(2*pi);    % 当存在Fyy 时， 去掉承载滚动体个数时 就不能从最下端开始了，而应该沿 合力的反方向！！！
-     if (ceil(n*xishu)-(loadj/2-1))<1        % 当可以从1号球开始时
-      if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[loadi(1:ceil(n*xishu))  loadi(ceil(n*xishu)+1:ceil(n*xishu)+loadj/2-1)  loadi(ceil(n*xishu)+loadj/2+1:loadj)];   % 只去掉一个中间的球
-       else
-           loadi=[loadi(1:ceil(n*xishu))  loadi(ceil(n*xishu)+1:ceil(n*xishu)+floor(loadj/2)) loadi(ceil(n*xishu)+floor(loadj/2)+2:loadj)];    % 去掉1个球
-       end
-     else         % 当 不 可以从1号球开始时
-        if mod(loadj/2,1)==0        %说明滚动体个数为偶数！！
-           loadi=[ (ceil(n*xishu)-(loadj/2-1)):ceil(n*xishu)+loadj/2-1 ];  % 只去掉一个中间的球
-       else
-           loadi=[  (ceil(n*xishu)-floor(loadj/2)+1):ceil(n*xishu)+floor(loadj/2)   ];    % 去掉1个球
-       end 
-     end    
-  end  
 else
+    activeState.next_loadi=loadi;
+    activeState.active_set_stable=true;
     mark1=2;              %说明收敛且没有出错！！！！
     break
 end
@@ -203,6 +203,7 @@ end
 ffLOAD(datafromvb,loadi,www3);      load result444;
 if loadj==1
 while( result444>0.1 )        %单次计算 循环
+    activeState.loadi_history{end+1}=loadi;
     ffLOAD(datafromvb,loadi,www3);      load result444;result444
     load uu; www3=uu;
     JffLOAD(datafromvb,loadi,www3);    load Jzz;
@@ -238,16 +239,54 @@ for i=1:loadj
     end
 end
 if mark1==1      % 表示计算出错,此时要去掉 承载  滚动体个数!!!!
-loadj=0; loadi=[];
+activeState.next_loadi=[];
+if allow_active_set_update
+    loadj=0; loadi=[];
+end
 else
+    activeState.next_loadi=loadi;
+    activeState.active_set_stable=true;
     mark1=2;              %说明收敛且没有出错！！！！
 end
-loadj=length(loadi); 
+loadj=length(loadi);
 end
 
+activeState.active_set_stable=isequal(activeState.next_loadi,loadi);
 save www3; save loadi;
 
 
 
 
 
+end
+
+function next_loadi=reduce_active_set(loadi,loadj,n,Fyy,Fzz)
+% Preserve the legacy loaded-element removal criterion and ordering.
+if Fyy==0
+    if mod(loadj/2,1)==0
+        next_loadi=[loadi(1:loadj/2-1) loadi(loadj/2+1:loadj)];
+    else
+        next_loadi=[loadi(1:floor(loadj/2)) loadi(floor(loadj/2)+2:loadj)];
+    end
+else
+    lipianjiao=atan(Fyy/(Fzz+1));
+    xishu=lipianjiao/(2*pi);
+    if (ceil(n*xishu)-(loadj/2-1))<1
+        if mod(loadj/2,1)==0
+            next_loadi=[loadi(1:ceil(n*xishu)) ...
+                loadi(ceil(n*xishu)+1:ceil(n*xishu)+loadj/2-1) ...
+                loadi(ceil(n*xishu)+loadj/2+1:loadj)];
+        else
+            next_loadi=[loadi(1:ceil(n*xishu)) ...
+                loadi(ceil(n*xishu)+1:ceil(n*xishu)+floor(loadj/2)) ...
+                loadi(ceil(n*xishu)+floor(loadj/2)+2:loadj)];
+        end
+    else
+        if mod(loadj/2,1)==0
+            next_loadi=(ceil(n*xishu)-(loadj/2-1)):ceil(n*xishu)+loadj/2-1;
+        else
+            next_loadi=(ceil(n*xishu)-floor(loadj/2)+1):ceil(n*xishu)+floor(loadj/2);
+        end
+    end
+end
+end

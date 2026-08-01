@@ -66,8 +66,40 @@ dianpianjiao=datafromvb(34)*pi/180;  %垫片角
 leixing=datafromvb(74); %轴承类型
 deltar0=2*(1-cos(a0))*(f1+f2-1)*Dw;               %求原始径向间隙！
 %a0=acos(1-deltar0/(f1+f2-1)/Dw/2);
-qiujieLOAD(datafromvb);  
-load loadi;load www3          %初步求解载荷分布！！
+active_set_mode='freeze_newton';
+if isfield(micro_config,'active_set_mode')
+    active_set_mode=micro_config.active_set_mode;
+end
+if ~(strcmp(active_set_mode,'legacy') || strcmp(active_set_mode,'freeze_newton'))
+    error('qiujieend:ActiveSetMode', ...
+        'active_set_mode must be legacy or freeze_newton.');
+end
+if strcmp(active_set_mode,'legacy')
+    qiujieLOAD(datafromvb);
+    load loadi; load www3
+else
+    activeControl=struct('active_set_mode','freeze_newton', ...
+        'initial_loadi',1:n);
+    activeSetStable=false;
+    max_active_iter=n+1;
+    for active_iter=1:max_active_iter
+        [loadi,www3,activeState]=qiujieLOAD(datafromvb,activeControl);
+        if activeState.active_set_stable
+            activeSetStable=true;
+            break
+        end
+        if isempty(activeState.next_loadi)
+            error('qiujieend:EmptyActiveSet', ...
+                'The legacy activity-set criterion removed every rolling element.');
+        end
+        activeControl.initial_loadi=activeState.next_loadi;
+    end
+    if ~activeSetStable
+        error('qiujieend:ActiveSetNotStable', ...
+            'The outer activity-set iteration did not stabilize.');
+    end
+end
+loadj=length(loadi);
 ffLOAD(datafromvb,loadi,www3);load zzzz3;zz3=zzzz3;
 iii=1;j=1;
 for iii=1:5
